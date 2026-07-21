@@ -1,0 +1,1846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RupeeCraft - Tactile Financial Assistant & Predictor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for premium typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for exporting reports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        :root {
+            --bg-canvas: #f5f4ef;
+            --plate-bg: #faf9f5;
+            --plate-border: #e3dec3;
+            --text-primary: #3d3b34;
+            --text-secondary: #706c5e;
+            --gold-accent: #bda25c;
+            --gold-shadow: #8f7433;
+            --leather-dark: #4a2c11;
+            --indent-shadow: inset 2px 2px 5px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.8);
+            --tactile-shadow: 6px 6px 15px rgba(186, 180, 155, 0.4), -6px -6px 15px rgba(255, 255, 255, 0.9);
+            --tactile-shadow-sm: 3px 3px 8px rgba(186, 180, 155, 0.3), -3px -3px 8px rgba(255, 255, 255, 0.9);
+            --button-pressed: inset 2px 2px 4px rgba(0,0,0,0.1), inset -2px -2px 4px rgba(255,255,255,0.8);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            background-image: radial-gradient(#e9e7dc 1.5px, transparent 1.5px), radial-gradient(#e9e7dc 1.5px, #f5f4ef 1.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        .serif-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .mono-font {
+            font-family: 'Courier Prime', monospace;
+        }
+
+        /* Tactile Skeuomorphic Card / Plate */
+        .skeuo-plate {
+            background: var(--plate-bg);
+            border: 1px solid var(--plate-border);
+            border-radius: 20px;
+            box-shadow: var(--tactile-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeuo-plate-inner {
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 19px;
+            height: 100%;
+        }
+
+        /* Tactile Sunken Elements (Inputs, Grooves) */
+        .skeuo-sunken {
+            background: #fcfbfa;
+            border: 1px solid #dcd7c0;
+            box-shadow: var(--indent-shadow);
+            border-radius: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .skeuo-sunken:focus {
+            outline: none;
+            border-color: var(--gold-accent);
+            box-shadow: inset 1px 1px 3px rgba(189, 162, 92, 0.2), 0 0 0 2px rgba(189, 162, 92, 0.15);
+        }
+
+        /* Tactile Buttons */
+        .skeuo-btn {
+            background: linear-gradient(145deg, #ffffff, #eae6d5);
+            border: 1px solid #d5d0b9;
+            box-shadow: 4px 4px 10px rgba(186, 180, 155, 0.4), -4px -4px 10px rgba(255,255,255,0.9);
+            border-radius: 12px;
+            transition: all 0.15s ease;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .skeuo-btn:hover {
+            background: linear-gradient(145deg, #faf9f4, #dfdac2);
+            transform: translateY(-1px);
+        }
+
+        .skeuo-btn:active {
+            background: #e3dec6;
+            box-shadow: var(--button-pressed);
+            transform: translateY(1px);
+        }
+
+        /* Gold Stamp Accent Button */
+        .skeuo-btn-gold {
+            background: linear-gradient(145deg, #e3c476, #a48238);
+            border: 1px solid #8a6c2a;
+            box-shadow: 4px 4px 10px rgba(138, 108, 42, 0.3), -4px -4px 10px rgba(255,255,255,0.6);
+            border-radius: 12px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+
+        .skeuo-btn-gold:hover {
+            background: linear-gradient(145deg, #ebd08c, #94732d);
+        }
+
+        .skeuo-btn-gold:active {
+            background: #8f722e;
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.25);
+            transform: translateY(1px);
+        }
+
+        /* Leather Header Trim representing a luxury ledger book binding */
+        .leather-binding {
+            background: linear-gradient(90deg, #42250d 0%, #5c3516 40%, #4a2c11 50%, #5c3516 60%, #42250d 100%);
+            border-bottom: 3px solid #805c31;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15), inset 0 -1px 3px rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        .stitch-line {
+            border-bottom: 1px dashed rgba(250, 240, 220, 0.3);
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 4px;
+        }
+
+        /* Safe physical metal dial / LCD-looking container */
+        .lcd-display {
+            background-color: #e4eedc;
+            border: 3px solid #b2bfab;
+            box-shadow: inset 3px 3px 6px rgba(0,0,0,0.15);
+            color: #2b3a24;
+            text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+        }
+
+        /* Metal screw heads for decorative mechanical feel */
+        .metal-screw {
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #ffffff, #999, #444);
+            border-radius: 50%;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .metal-screw::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 1px;
+            width: 8px;
+            height: 2px;
+            background: #555;
+            transform: rotate(45deg);
+        }
+
+        /* Active Navigation Tab Styling */
+        .tab-btn {
+            position: relative;
+            z-index: 10;
+        }
+        .tab-btn.active {
+            background: var(--plate-bg);
+            border-bottom: 2px solid var(--plate-bg);
+            margin-bottom: -2px;
+            box-shadow: 0 -4px 10px rgba(186, 180, 155, 0.25);
+            color: var(--gold-accent);
+        }
+
+        /* Color key markers for calendar */
+        .day-good { background: radial-gradient(circle at 35% 35%, #e6f6e8 0%, #c4ebd0 100%); border-color: #9cdba9; }
+        .day-moderate { background: radial-gradient(circle at 35% 35%, #fffdf0 0%, #fef3c7 100%); border-color: #fbd38d; }
+        .day-heavy { background: radial-gradient(circle at 35% 35%, #fff5f5 0%, #feb2b2 100%); border-color: #fc8181; }
+        .day-neutral { background: radial-gradient(circle at 35% 35%, #fafafa 0%, #e2e8f0 100%); border-color: #cbd5e0; }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Top Leather Bound Header representing the classic physical notebook -->
+    <header class="leather-binding py-5 px-6 relative z-30">
+        <div class="stitch-line"></div>
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <!-- Golden physical looking crest -->
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-300 to-amber-600 flex items-center justify-center border-2 border-[#ffebaa] shadow-lg">
+                    <span class="serif-font font-bold text-xl text-amber-950">රු</span>
+                </div>
+                <div>
+                    <h1 class="serif-font text-2xl md:text-3xl font-extrabold text-[#f3ebda] tracking-wide flex items-center gap-2">
+                        RupeeCraft Ledger
+                    </h1>
+                    <p class="text-xs text-[#dfcfb0] tracking-widest uppercase font-semibold">Premium Ceylon Financial Comptroller</p>
+                </div>
+            </div>
+
+            <!-- LCD Balance Meter mimicking an analog safe register -->
+            <div class="flex items-center gap-4">
+                <div class="metal-screw hidden md:block"></div>
+                <div class="lcd-display rounded-lg p-2.5 px-6 font-semibold flex flex-col items-end min-w-[200px] border-2">
+                    <span class="text-[10px] tracking-wider uppercase font-bold text-[#44553b]">Estimated Cash Surplus</span>
+                    <span class="mono-font text-2xl font-bold tracking-tight" id="lcd-main-balance">LKR 0.00</span>
+                </div>
+                <div class="metal-screw hidden md:block"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN WRAPPER CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+
+        <!-- NOTIFICATIONS ALERT BAR -->
+        <div id="notification-bar" class="mb-6 skeuo-plate transition-all duration-300 hidden">
+            <div class="skeuo-plate-inner p-4 bg-amber-50 border-amber-200 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-amber-200 flex items-center justify-center text-amber-800">
+                        🔔
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-amber-900 text-sm">System Prompt Alert</h4>
+                        <p class="text-xs text-amber-800" id="notification-text">A bill is scheduled to be paid soon.</p>
+                    </div>
+                </div>
+                <button onclick="dismissNotification()" class="text-xs font-bold text-amber-900 hover:underline px-2 py-1">Dismiss</button>
+            </div>
+        </div>
+
+        <!-- STICKY NAVIGATION TABS (PHYSICAL SKEUOMORPHIC TABS) -->
+        <div class="flex flex-wrap gap-1 md:gap-2 mb-0 border-b border-[#dcd7c0] relative z-20 overflow-x-auto">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn active px-4 py-2.5 rounded-t-xl border border-b-0 border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all">
+                📊 Dashboard
+            </button>
+            <button onclick="switchTab('ledger')" id="tab-ledger" class="tab-btn px-4 py-2.5 rounded-t-xl border border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all">
+                📝 Add Transactions
+            </button>
+            <button onclick="switchTab('calendar')" id="tab-calendar" class="tab-btn px-4 py-2.5 rounded-t-xl border border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all">
+                📅 Cal-Health Tab
+            </button>
+            <button onclick="switchTab('reports')" id="tab-reports" class="tab-btn px-4 py-2.5 rounded-t-xl border border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all">
+                📈 Reports & Export
+            </button>
+            <button onclick="switchTab('news')" id="tab-news" class="tab-btn px-4 py-2.5 rounded-t-xl border border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all flex items-center gap-1">
+                🇱🇰 Ceylon Intel <span class="bg-amber-500 text-white text-[10px] px-1 rounded-full animate-pulse">Live</span>
+            </button>
+            <button onclick="switchTab('predictions')" id="tab-predictions" class="tab-btn px-4 py-2.5 rounded-t-xl border border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all">
+                🔮 AI Future Sight
+            </button>
+            <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-2.5 rounded-t-xl border border-[#dcd7c0] font-bold text-sm tracking-wide text-[#555] transition-all">
+                ⚙️ Settings
+            </button>
+        </div>
+
+        <!-- MAIN TAB SCREEN CONTENT PANELS -->
+        <div class="mt-4">
+
+            <!-- TAB 1: DASHBOARD -->
+            <div id="panel-dashboard" class="tab-panel space-y-6">
+                <!-- TOP CARD GRID: STATS METERS -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Gauge 1: Current Income -->
+                    <div class="skeuo-plate">
+                        <div class="skeuo-plate-inner p-5 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs uppercase font-extrabold tracking-wider text-emerald-700">Monthly Inflow</span>
+                                <span class="text-xl">📥</span>
+                            </div>
+                            <div class="mt-3">
+                                <span class="mono-font text-2xl font-bold text-emerald-800" id="dash-total-income">LKR 0.00</span>
+                                <div class="w-full bg-emerald-100 rounded-full h-1.5 mt-2">
+                                    <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 2: Current Expenses -->
+                    <div class="skeuo-plate">
+                        <div class="skeuo-plate-inner p-5 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs uppercase font-extrabold tracking-wider text-amber-800">Monthly Expenditure</span>
+                                <span class="text-xl">💸</span>
+                            </div>
+                            <div class="mt-3">
+                                <span class="mono-font text-2xl font-bold text-amber-900" id="dash-total-expense">LKR 0.00</span>
+                                <div class="w-full bg-amber-100 rounded-full h-1.5 mt-2">
+                                    <div id="dash-expense-bar" class="bg-amber-600 h-1.5 rounded-full" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 3: Total Bills Due -->
+                    <div class="skeuo-plate">
+                        <div class="skeuo-plate-inner p-5 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs uppercase font-extrabold tracking-wider text-rose-800">Fixed Bills Due</span>
+                                <span class="text-xl">🧾</span>
+                            </div>
+                            <div class="mt-3">
+                                <span class="mono-font text-2xl font-bold text-rose-900" id="dash-total-bills">LKR 0.00</span>
+                                <p class="text-[11px] text-rose-700 mt-1" id="dash-bills-count">0 unpaid commitments</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gauge 4: Dynamic Budget Thermometer -->
+                    <div class="skeuo-plate">
+                        <div class="skeuo-plate-inner p-5 flex flex-col justify-between">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs uppercase font-extrabold tracking-wider text-yellow-800">Budget Threshold</span>
+                                <span class="text-xl">🌡️</span>
+                            </div>
+                            <div class="mt-3">
+                                <span class="mono-font text-2xl font-bold text-yellow-900" id="dash-budget-info">0% Limit</span>
+                                <div class="w-full bg-stone-200 rounded-full h-2.5 mt-2 relative overflow-hidden shadow-inner">
+                                    <div id="dash-budget-thermometer" class="bg-gradient-to-r from-emerald-500 via-amber-500 to-rose-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIDDLE GRID: RESERVE POTS & RECENT FEED -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Reserve Pots (Claymorphic Jar/Safe UI) -->
+                    <div class="skeuo-plate lg:col-span-5">
+                        <div class="skeuo-plate-inner p-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="serif-font text-lg font-extrabold text-[#3d3b34]">Reserve Money Pots</h3>
+                                <span class="text-xs bg-[#e9e7dc] text-[#555] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Tactile Jars</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                <!-- Emergency Pot -->
+                                <div class="p-3 bg-stone-50 rounded-xl border border-dashed border-stone-300 flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-3xl">🏺</div>
+                                        <div>
+                                            <h4 class="font-bold text-stone-800 text-sm">Emergency Vault</h4>
+                                            <p class="text-xs text-stone-500">Target LKR 100,000</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-stone-800 text-sm mono-font" id="pot-emergency-val">LKR 0.00</p>
+                                        <button onclick="openReserveModal('Emergency')" class="text-xs font-bold text-amber-700 hover:underline">Add / Sub</button>
+                                    </div>
+                                </div>
+
+                                <!-- Future Investment Pot -->
+                                <div class="p-3 bg-stone-50 rounded-xl border border-dashed border-stone-300 flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-3xl">💎</div>
+                                        <div>
+                                            <h4 class="font-bold text-stone-800 text-sm">Wealth Reserve</h4>
+                                            <p class="text-xs text-stone-500">Target LKR 500,000</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-stone-800 text-sm mono-font" id="pot-wealth-val">LKR 0.00</p>
+                                        <button onclick="openReserveModal('Wealth')" class="text-xs font-bold text-amber-700 hover:underline">Add / Sub</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6 p-3 bg-stone-100 rounded-xl border border-stone-200">
+                                <h4 class="text-xs uppercase font-extrabold text-stone-600 mb-1">Transfer to Reserve Jar</h4>
+                                <p class="text-xs text-stone-500 mb-3">Isolate standard capital safely inside the ledger reserve.</p>
+                                <div class="flex gap-2">
+                                    <input type="number" id="quick-pot-amt" class="skeuo-sunken px-3 py-1.5 text-sm w-full" placeholder="Amount LKR">
+                                    <select id="quick-pot-target" class="skeuo-sunken px-2 py-1.5 text-xs">
+                                        <option value="Emergency">Emergency</option>
+                                        <option value="Wealth">Wealth Reserve</option>
+                                    </select>
+                                    <button onclick="handleQuickPotDeposit()" class="skeuo-btn px-4 text-xs font-bold shrink-0">Deposit</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Quick Daily Overview of Month -->
+                    <div class="skeuo-plate lg:col-span-7">
+                        <div class="skeuo-plate-inner p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="serif-font text-lg font-extrabold text-[#3d3b34]">Surplus Balance Analytics</h3>
+                                    <span class="text-xs font-bold text-emerald-800 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded">Active Ledger</span>
+                                </div>
+                                <canvas id="dashboardSurplusChart" class="max-h-[220px]"></canvas>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center border-t border-stone-200 pt-3">
+                                <span class="text-xs text-stone-500">Note: Data reflects combined historical and current month expenditures.</span>
+                                <button onclick="switchTab('ledger')" class="text-xs font-bold text-amber-700 hover:underline">Register New Transaction ➔</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: LEDGER (DAILY TRANSACTION REGISTER) -->
+            <div id="panel-ledger" class="tab-panel space-y-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Form Side -->
+                    <div class="skeuo-plate lg:col-span-5">
+                        <div class="skeuo-plate-inner p-6">
+                            <h3 class="serif-font text-xl font-extrabold text-[#3d3b34] mb-4 flex items-center gap-2">
+                                🖋️ Record Ledger Entry
+                            </h3>
+                            <form id="ledger-form" onsubmit="handleTransactionSubmit(event)" class="space-y-4">
+                                <!-- Type -->
+                                <div>
+                                    <label class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Transaction Type</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <button type="button" onclick="selectFormType('income')" id="form-type-income" class="px-3 py-2 border rounded-xl font-bold text-xs bg-emerald-50 text-emerald-800 border-emerald-300">
+                                            📥 Income
+                                        </button>
+                                        <button type="button" onclick="selectFormType('expense')" id="form-type-expense" class="px-3 py-2 border rounded-xl font-bold text-xs bg-stone-100 text-stone-500 border-stone-300">
+                                            💸 Expense
+                                        </button>
+                                        <button type="button" onclick="selectFormType('bill')" id="form-type-bill" class="px-3 py-2 border rounded-xl font-bold text-xs bg-stone-100 text-stone-500 border-stone-300">
+                                            🧾 Bill / Comm.
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="entry-type" value="income">
+                                </div>
+
+                                <!-- Date Selector -->
+                                <div>
+                                    <label for="entry-date" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Date</label>
+                                    <input type="date" id="entry-date" class="w-full skeuo-sunken p-2.5 text-sm" required>
+                                </div>
+
+                                <!-- Title/Description -->
+                                <div>
+                                    <label for="entry-title" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Description / Vendor</label>
+                                    <input type="text" id="entry-title" class="w-full skeuo-sunken p-2.5 text-sm" placeholder="e.g. Keells Grocery, Salary, CEB Bill" required>
+                                </div>
+
+                                <!-- Category Selection -->
+                                <div>
+                                    <label for="entry-category" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Category Group</label>
+                                    <select id="entry-category" class="w-full skeuo-sunken p-2.5 text-sm" required>
+                                        <!-- Will be dynamically updated based on selection type -->
+                                        <option value="Salary">Salary / Professional Income</option>
+                                        <option value="Investment">Investment Returns</option>
+                                        <option value="Freelance">Freelance Earnings</option>
+                                    </select>
+                                </div>
+
+                                <!-- Amount -->
+                                <div>
+                                    <label for="entry-amount" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Amount (LKR)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2.5 font-bold text-stone-400 text-sm">LKR</span>
+                                        <input type="number" step="0.01" id="entry-amount" class="w-full skeuo-sunken p-2.5 pl-12 text-sm font-bold" placeholder="0.00" required>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="w-full skeuo-btn-gold py-3 text-sm font-bold uppercase tracking-wider">
+                                    Authenticate & Stamp Entry
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Ledger Spreadsheet Side -->
+                    <div class="skeuo-plate lg:col-span-7">
+                        <div class="skeuo-plate-inner p-6 flex flex-col h-full">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="serif-font text-lg font-extrabold text-[#3d3b34]">Archived Ledger Entries</h3>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="search-ledger" oninput="filterLedger()" class="skeuo-sunken px-3 py-1.5 text-xs w-44" placeholder="Search entries...">
+                                    <button onclick="clearAllTransactions()" class="text-xs bg-rose-50 text-rose-800 border border-rose-200 px-2 py-1 rounded hover:bg-rose-100 transition">Reset Ledger</button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto flex-grow max-h-[400px]">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="bg-stone-100 text-stone-600 font-extrabold uppercase border-b border-stone-200">
+                                            <th class="p-3">Date</th>
+                                            <th class="p-3">Entry Description</th>
+                                            <th class="p-3">Category</th>
+                                            <th class="p-3 text-right">Amount</th>
+                                            <th class="p-3 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ledger-table-body" class="divide-y divide-stone-100">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CALENDAR VIEW (COLOR-CODED FINANCIAL HEALTH) -->
+            <div id="panel-calendar" class="tab-panel space-y-6 hidden">
+                <div class="skeuo-plate">
+                    <div class="skeuo-plate-inner p-6">
+                        <!-- Calendar Header Controller -->
+                        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="serif-font text-2xl font-extrabold text-[#3d3b34]">Cal-Health Ledger Chart</h3>
+                                <p class="text-xs text-[#706c5e]">Visual dynamic tracking calendar showing days colorized based on Net Fiscal Surplus flow.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button onclick="navigateCalendar(-1)" class="skeuo-btn p-2 px-3">◀</button>
+                                <span id="calendar-month-year" class="font-extrabold serif-font text-lg text-stone-800 min-w-[140px] text-center">July 2026</span>
+                                <button onclick="navigateCalendar(1)" class="skeuo-btn p-2 px-3">▶</button>
+                            </div>
+                        </div>
+
+                        <!-- Color Guide Legend -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200 mb-6 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="w-4 h-4 rounded-full day-good inline-block border"></span>
+                                <div>
+                                    <span class="font-bold block">Positive Inflow / Net Zero </span>
+                                    <span class="text-[10px] text-stone-500">Earnings exceed expenses</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-4 h-4 rounded-full day-moderate inline-block border"></span>
+                                <div>
+                                    <span class="font-bold block">Moderate Outflow</span>
+                                    <span class="text-[10px] text-stone-500">Expenses under LKR 3,000</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-4 h-4 rounded-full day-heavy inline-block border"></span>
+                                <div>
+                                    <span class="font-bold block">Heavy Outflow</span>
+                                    <span class="text-[10px] text-stone-500">Expenses over LKR 3,000</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-4 h-4 rounded-full day-neutral inline-block border"></span>
+                                <div>
+                                    <span class="font-bold block">Dormant Ledger</span>
+                                    <span class="text-[10px] text-stone-500">No active postings</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="grid grid-cols-7 gap-2 text-center text-xs font-bold text-stone-600 mb-2">
+                            <div>Sun</div>
+                            <div>Mon</div>
+                            <div>Tue</div>
+                            <div>Wed</div>
+                            <div>Thu</div>
+                            <div>Fri</div>
+                            <div>Sat</div>
+                        </div>
+                        <div id="calendar-grid" class="grid grid-cols-7 gap-2 min-h-[350px]">
+                            <!-- Generated Dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Detail Popover/Drill-down Box -->
+                <div id="calendar-drilldown" class="skeuo-plate hidden">
+                    <div class="skeuo-plate-inner p-5 bg-stone-50">
+                        <div class="flex justify-between items-center border-b border-stone-200 pb-2 mb-3">
+                            <h4 class="font-bold text-stone-800" id="drilldown-title">Transactions for Date</h4>
+                            <button onclick="closeDrilldown()" class="text-xs text-stone-500 hover:underline">Close Preview</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="text-stone-500 font-extrabold uppercase border-b border-stone-100">
+                                        <th class="p-2">Description</th>
+                                        <th class="p-2">Category</th>
+                                        <th class="p-2">Type</th>
+                                        <th class="p-2 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="drilldown-tbody" class="divide-y divide-stone-100">
+                                    <!-- Dynamic elements -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: REPORTS & EXPORT -->
+            <div id="panel-reports" class="tab-panel space-y-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left Side: Interactive Report Controls and Metrics -->
+                    <div class="skeuo-plate lg:col-span-4">
+                        <div class="skeuo-plate-inner p-6 flex flex-col justify-between h-full">
+                            <div>
+                                <h3 class="serif-font text-xl font-extrabold text-[#3d3b34] mb-4">Export Treasury Dossier</h3>
+                                <p class="text-xs text-stone-600 mb-4">RupeeCraft facilitates physical PDF ledger printing. Generate an audit-ready, formatted physical record containing monthly performance statements.</p>
+
+                                <div class="space-y-4 p-4 bg-stone-50 rounded-xl border border-stone-200 mb-6">
+                                    <div>
+                                        <label for="report-month-filter" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Target Statement Period</label>
+                                        <select id="report-month-filter" onchange="updateReportsView()" class="w-full skeuo-sunken p-2 text-sm">
+                                            <option value="2026-07">July 2026 Statement (Active)</option>
+                                            <option value="2026-06">June 2026 Statement (Archived)</option>
+                                            <option value="2026-05">May 2026 Statement (Archived)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Ledger Metrics Summary</label>
+                                        <div class="space-y-1.5 text-xs text-stone-700 font-semibold mt-1">
+                                            <div class="flex justify-between">
+                                                <span>Aggregate Income:</span>
+                                                <span class="mono-font" id="report-sum-income">LKR 0.00</span>
+                                            </div>
+                                            <div class="flex justify-between">
+                                                <span>Aggregate Expenses:</span>
+                                                <span class="mono-font" id="report-sum-expense">LKR 0.00</span>
+                                            </div>
+                                            <div class="flex justify-between border-t border-stone-300 pt-1.5 font-bold">
+                                                <span>Net Treasury Balance:</span>
+                                                <span class="mono-font text-emerald-800" id="report-sum-net">LKR 0.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="generatePDFReport()" class="w-full skeuo-btn-gold py-3 text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                                📜 Export PDF Statement
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: Categorized Expenses Visualization -->
+                    <div class="skeuo-plate lg:col-span-8">
+                        <div class="skeuo-plate-inner p-6">
+                            <h3 class="serif-font text-lg font-extrabold text-[#3d3b34] mb-4">Visual Expense Outlay</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                                <div class="md:col-span-5">
+                                    <canvas id="categoryDonutChart" class="max-h-[220px]"></canvas>
+                                </div>
+                                <div class="md:col-span-7">
+                                    <div class="p-3 bg-stone-50 rounded-xl border border-stone-200">
+                                        <h4 class="text-xs uppercase font-extrabold text-stone-600 mb-2">Category Allocations</h4>
+                                        <div id="category-legend-list" class="space-y-1.5 max-h-[180px] overflow-y-auto text-xs">
+                                            <!-- Dynamically generated list with progress meters -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: LATEST CEYLON INTEL NEWS -->
+            <div id="panel-news" class="tab-panel space-y-6 hidden">
+                <div class="skeuo-plate">
+                    <div class="skeuo-plate-inner p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="serif-font text-2xl font-extrabold text-[#3d3b34] flex items-center gap-2">
+                                    🇱🇰 Ceylon Financial Intelligence Brief
+                                </h3>
+                                <p class="text-xs text-[#706c5e]">Fetches live search-grounded market intelligence on Sri Lankan LPGas, Fuel, Taxes, Electricity Tariffs and macroeconomic updates via Gemini Flash.</p>
+                            </div>
+                            <button onclick="fetchSriLankanNews()" id="news-refresh-btn" class="skeuo-btn px-4 py-2 text-xs flex items-center gap-2">
+                                <span class="animate-spin text-sm hidden" id="news-spinner">⏳</span> Fetch Fresh Intel
+                            </button>
+                        </div>
+
+                        <!-- Top Quick Indicators (Visual Skeuomorphic Meter Plates) -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="p-4 bg-[#fbfaf6] border border-[#e3dec3] rounded-xl flex items-center gap-4 shadow-sm">
+                                <div class="text-3xl">⛽</div>
+                                <div>
+                                    <h4 class="text-xs uppercase font-extrabold text-stone-500">Estimated Fuel (Octane 92)</h4>
+                                    <p class="mono-font font-bold text-lg text-stone-800" id="intel-fuel-price">Fetching...</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-[#fbfaf6] border border-[#e3dec3] rounded-xl flex items-center gap-4 shadow-sm">
+                                <div class="text-3xl">🔥</div>
+                                <div>
+                                    <h4 class="text-xs uppercase font-extrabold text-stone-500">Litro LPG Cylinder (12.5kg)</h4>
+                                    <p class="mono-font font-bold text-lg text-stone-800" id="intel-gas-price">Fetching...</p>
+                                </div>
+                            </div>
+                            <div class="p-4 bg-[#fbfaf6] border border-[#e3dec3] rounded-xl flex items-center gap-4 shadow-sm">
+                                <div class="text-3xl">⚖️</div>
+                                <div>
+                                    <h4 class="text-xs uppercase font-extrabold text-stone-500">VAT / TAX Threshold</h4>
+                                    <p class="mono-font font-bold text-lg text-stone-800" id="intel-vat-rate">Fetching...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Text Box Output representing printed paper tape -->
+                        <div class="relative">
+                            <!-- Paper rip design pattern top -->
+                            <div class="absolute -top-3 left-0 right-0 h-4 bg-stone-100 border-b border-dashed border-stone-300" style="clip-path: polygon(0% 0%, 5% 100%, 10% 0%, 15% 100%, 20% 0%, 25% 100%, 30% 0%, 35% 100%, 40% 0%, 45% 100%, 50% 0%, 55% 100%, 60% 0%, 65% 100%, 70% 0%, 75% 100%, 80% 0%, 85% 100%, 90% 0%, 95% 100%, 100% 0%);"></div>
+                            
+                            <div class="p-6 bg-amber-50 border border-stone-200 shadow-inner rounded-b-xl min-h-[300px] mono-font text-stone-800 text-sm leading-relaxed" id="news-output">
+                                <p class="text-center text-stone-500 italic mt-12">Press 'Fetch Fresh Intel' above to activate live Ceylon news synthesis powered by Gemini Grounded Search.</p>
+                            </div>
+                        </div>
+
+                        <!-- News Sources citations block -->
+                        <div id="news-sources-container" class="mt-4 p-4 bg-stone-50 rounded-xl border border-stone-200 text-xs hidden">
+                            <h5 class="font-bold text-stone-700 mb-2 flex items-center gap-1">🔗 Verifiable Citations & Sources</h5>
+                            <ul id="news-sources-list" class="space-y-1 list-disc pl-5 text-amber-900">
+                                <!-- Populated dynamically -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 6: FUTURE SIGHT PREDICTION -->
+            <div id="panel-predictions" class="tab-panel space-y-6 hidden">
+                <div class="skeuo-plate">
+                    <div class="skeuo-plate-inner p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                            <div>
+                                <h3 class="serif-font text-2xl font-extrabold text-[#3d3b34]">🔮 AI Future Sight & Prediction Analysis</h3>
+                                <p class="text-xs text-[#706c5e]">Sends your active ledger configuration to Gemini to forecast your future runway, assess risks, and suggest tactical savings maneuvers.</p>
+                            </div>
+                            <button onclick="generateAIPredictions()" id="prediction-run-btn" class="skeuo-btn-gold px-5 py-2.5 text-xs flex items-center gap-2">
+                                <span class="animate-spin text-sm hidden" id="prediction-spinner">⏳</span> Compute Forecast
+                            </button>
+                        </div>
+
+                        <!-- Quick metrics dashboard passed to AI -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-stone-50 rounded-xl border border-stone-200 text-xs mb-6 font-semibold">
+                            <div>
+                                <span class="text-stone-500 block uppercase font-bold text-[10px]">Computed Runway (Months)</span>
+                                <span class="text-lg font-bold text-stone-800" id="predict-runway">---</span>
+                            </div>
+                            <div>
+                                <span class="text-stone-500 block uppercase font-bold text-[10px]">Average Daily Burn</span>
+                                <span class="text-lg font-bold text-[#b91c1c]" id="predict-burn">---</span>
+                            </div>
+                            <div>
+                                <span class="text-stone-500 block uppercase font-bold text-[10px]">Active Surplus Cushion</span>
+                                <span class="text-lg font-bold text-emerald-800" id="predict-surplus">---</span>
+                            </div>
+                            <div>
+                                <span class="text-stone-500 block uppercase font-bold text-[10px]">Discretionary Ratio</span>
+                                <span class="text-lg font-bold text-amber-800" id="predict-ratio">---</span>
+                            </div>
+                        </div>
+
+                        <!-- Prediction Outcome Screen styled as a mechanical paper ticket printout -->
+                        <div class="bg-stone-50 border border-stone-200 shadow-inner rounded-xl min-h-[300px] font-sans p-6">
+                            <div id="prediction-output-body" class="text-stone-700 leading-relaxed text-sm space-y-4">
+                                <p class="text-center text-stone-500 italic mt-12">Press 'Compute Forecast' to trigger artificial intelligence analysis of your LKR balances.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 7: SETTINGS -->
+            <div id="panel-settings" class="tab-panel space-y-6 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- General Config -->
+                    <div class="skeuo-plate md:col-span-6">
+                        <div class="skeuo-plate-inner p-6">
+                            <h3 class="serif-font text-lg font-extrabold text-[#3d3b34] mb-4">Ledger Customization</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="settings-currency" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Standard Currency Standard</label>
+                                    <select id="settings-currency" class="w-full skeuo-sunken p-2.5 text-sm">
+                                        <option value="LKR">Sri Lankan Rupee (LKR - රු)</option>
+                                        <option value="USD">United States Dollar (USD - $)</option>
+                                        <option value="EUR">Euro (EUR - €)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="settings-budget" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Monthly Spending Limit (Budget Threshold)</label>
+                                    <input type="number" id="settings-budget" class="w-full skeuo-sunken p-2.5 text-sm font-bold" value="80000">
+                                </div>
+                                <div>
+                                    <label for="settings-notif-limit" class="block text-xs uppercase font-extrabold text-stone-600 mb-1">Alert Notification Trigger (% of Budget reached)</label>
+                                    <input type="number" id="settings-notif-limit" class="w-full skeuo-sunken p-2.5 text-sm font-bold" value="85">
+                                </div>
+                                <button onclick="saveSettings()" class="skeuo-btn-gold px-6 py-2.5 text-xs font-bold uppercase tracking-wider">Save Configuration</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sandbox Operations -->
+                    <div class="skeuo-plate md:col-span-6">
+                        <div class="skeuo-plate-inner p-6">
+                            <h3 class="serif-font text-lg font-extrabold text-[#3d3b34] mb-4">Ledger Sandbox & Backup</h3>
+                            <p class="text-xs text-stone-500 mb-4">Perform ledger overrides, clean state initializations, or customize sandbox databases manually.</p>
+                            
+                            <div class="space-y-3">
+                                <button onclick="seedInitialHistoricalData()" class="w-full skeuo-btn text-left p-3 text-xs flex justify-between items-center">
+                                    <span>🌱 Seed Rich 3-Month Historical Sample Data</span>
+                                    <span class="text-[10px] text-stone-400 font-bold uppercase">Safe Overwrite</span>
+                                </button>
+                                <button onclick="clearAllTransactions()" class="w-full skeuo-btn text-left p-3 text-xs text-rose-800 border-rose-200 flex justify-between items-center bg-rose-50/50">
+                                    <span>🗑️ Complete Database Reset</span>
+                                    <span class="text-[10px] text-rose-400 font-bold uppercase">Danger zone</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- RESERVE DIALOG MODAL -->
+    <div id="reserve-modal" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 hidden">
+        <div class="skeuo-plate max-w-sm w-full">
+            <div class="skeuo-plate-inner p-6 bg-[#faf9f5]">
+                <h4 class="serif-font text-lg font-bold mb-3" id="reserve-modal-title">Adjust Pot</h4>
+                <p class="text-xs text-stone-500 mb-4">Withdraw or Deposit capital to isolated ledger pot directly.</p>
+                <div class="space-y-4">
+                    <input type="number" id="reserve-modal-amt" class="skeuo-sunken w-full p-2 text-sm" placeholder="Amount (LKR)">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="executePotAdjustment('deposit')" class="skeuo-btn-gold py-2 text-xs font-bold uppercase">Deposit</button>
+                        <button onclick="executePotAdjustment('withdraw')" class="skeuo-btn py-2 text-xs font-bold uppercase border-stone-400">Withdraw</button>
+                    </div>
+                    <button onclick="closeReserveModal()" class="w-full text-center text-xs text-stone-500 hover:underline pt-2">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        // Dynamic global store
+        let state = {
+            transactions: [],
+            currency: 'LKR',
+            monthlyBudget: 80000,
+            notifLimit: 85,
+            pots: {
+                Emergency: 45000,
+                Wealth: 120000
+            },
+            currentCalendarYear: 2026,
+            currentCalendarMonth: 6, // 0-based index. 6 = July
+            currentLedgerFormType: 'income'
+        };
+
+        // Cache Chart objects globally for proper re-renders
+        let surplusChartInstance = null;
+        let categoryDonutInstance = null;
+
+        // Active reserve target tracker
+        let activeReserveTarget = null;
+
+        // Launch Application
+        window.onload = function() {
+            initApp();
+        };
+
+        // Initialize state, load data
+        function initApp() {
+            // Seed sample data as default if none exists
+            if (localStorage.getItem('rupee_craft_state')) {
+                try {
+                    const loadedState = JSON.parse(localStorage.getItem('rupee_craft_state'));
+                    if (loadedState && loadedState.transactions && loadedState.transactions.length > 0) {
+                        state = loadedState;
+                    } else {
+                        seedSampleDataForcefully();
+                    }
+                } catch (e) {
+                    seedSampleDataForcefully();
+                }
+            } else {
+                seedSampleDataForcefully();
+            }
+
+            // Standard synchronization
+            syncDashboardMeters();
+            renderLedgerTable();
+            renderCalendar();
+            updateReportsView();
+            initSurplusChart();
+            initCategoryChart();
+            
+            // Set input date to today default
+            document.getElementById('entry-date').valueAsDate = new Date();
+            
+            // Pre-fill settings
+            document.getElementById('settings-currency').value = state.currency;
+            document.getElementById('settings-budget').value = state.monthlyBudget;
+            document.getElementById('settings-notif-limit').value = state.notifLimit;
+
+            // Trigger potential initial budget warning notification
+            checkBudgetAlerts();
+        }
+
+        // Persistent Save
+        function saveStateToStorage() {
+            localStorage.setItem('rupee_craft_state', JSON.stringify(state));
+        }
+
+        function seedSampleDataForcefully() {
+            // Generate robust 3-month realistic Sri Lankan sample data representing steady ledger tracking
+            const sampleTransactions = [];
+            
+            // May 2026
+            sampleTransactions.push(
+                { id: 't1', type: 'income', date: '2026-05-01', title: 'Ceylon Core Salary', category: 'Salary', amount: 185000 },
+                { id: 't2', type: 'bill', date: '2026-05-02', title: 'CEB Electricity Bill', category: 'Utilities', amount: 14500 },
+                { id: 't3', type: 'expense', date: '2026-05-05', title: 'Keells Supermarket', category: 'Groceries', amount: 24300 },
+                { id: 't4', type: 'expense', date: '2026-05-10', title: 'Litro Gas Cylinder Delivery', category: 'Utilities', amount: 4800 },
+                { id: 't5', type: 'income', date: '2026-05-15', title: 'Freelance Tech Audit', category: 'Freelance', amount: 45000 },
+                { id: 't6', type: 'expense', date: '2026-05-18', title: 'Galle Face Dining Out', category: 'Entertainment', amount: 12500 },
+                { id: 't7', type: 'expense', date: '2026-05-24', title: 'Cargills Food City', category: 'Groceries', amount: 18400 }
+            );
+
+            // June 2026
+            sampleTransactions.push(
+                { id: 't8', type: 'income', date: '2026-06-01', title: 'Ceylon Core Salary', category: 'Salary', amount: 185000 },
+                { id: 't9', type: 'bill', date: '2026-06-02', title: 'CEB Electricity Bill', category: 'Utilities', amount: 15100 },
+                { id: 't10', type: 'expense', date: '2026-06-04', title: 'Keells Provisions', category: 'Groceries', amount: 22100 },
+                { id: 't11', type: 'bill', date: '2026-06-08', title: 'SLT Broadband bill', category: 'Utilities', amount: 6200 },
+                { id: 't12', type: 'expense', date: '2026-06-12', title: 'Odel Colombo retail purchase', category: 'Shopping', amount: 14000 },
+                { id: 't13', type: 'expense', date: '2026-06-19', title: 'PickMe Rides Total', category: 'Transport', amount: 9800 },
+                { id: 't14', type: 'expense', date: '2026-06-25', title: 'Water Board Water Bill', category: 'Utilities', amount: 3500 },
+                { id: 't15', type: 'income', date: '2026-06-28', title: 'Consultancy Retainer', category: 'Freelance', amount: 30000 }
+            );
+
+            // July 2026 (Active month - current dates matching the simulated mock context)
+            sampleTransactions.push(
+                { id: 't16', type: 'income', date: '2026-07-01', title: 'Ceylon Core Salary', category: 'Salary', amount: 185000 },
+                { id: 't17', type: 'bill', date: '2026-07-02', title: 'CEB Electricity Bill', category: 'Utilities', amount: 16800 },
+                { id: 't18', type: 'expense', date: '2026-07-05', title: 'Spars Keells Super', category: 'Groceries', amount: 28400 },
+                { id: 't19', type: 'expense', date: '2026-07-08', title: 'Sinopec Petrol Refill', category: 'Transport', amount: 8500 },
+                { id: 't20', type: 'expense', date: '2026-07-12', title: 'Laugfs Gas 5kg Tank', category: 'Utilities', amount: 2100 },
+                { id: 't21', type: 'expense', date: '2026-07-15', title: 'Daraz Online Shopping', category: 'Shopping', amount: 11200 },
+                { id: 't22', type: 'bill', date: '2026-07-18', title: 'Dialog Axiata Mobile Bill', category: 'Utilities', amount: 4800 }
+            );
+
+            state.transactions = sampleTransactions;
+            state.currency = 'LKR';
+            state.monthlyBudget = 80000;
+            state.pots = {
+                Emergency: 45000,
+                Wealth: 120000
+            };
+            saveStateToStorage();
+        }
+
+        // Allow trigger seeding from Settings
+        function seedInitialHistoricalData() {
+            seedSampleDataForcefully();
+            initApp();
+            showNotification("Successfully seeded extensive Ceylon 3-Month historical dataset!");
+        }
+
+        // Clear State Database
+        function clearAllTransactions() {
+            state.transactions = [];
+            state.pots = { Emergency: 0, Wealth: 0 };
+            saveStateToStorage();
+            initApp();
+            showNotification("Ledger database completely reset!");
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(`panel-${tabId}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            // Specific tab entry tasks
+            if (tabId === 'calendar') {
+                renderCalendar();
+            } else if (tabId === 'reports') {
+                updateReportsView();
+            } else if (tabId === 'dashboard') {
+                syncDashboardMeters();
+                initSurplusChart();
+            }
+        }
+
+        // Compute total balances, bills, surpluses
+        function calculatePeriodMetrics(yearMonthStr) {
+            // Filter transactions based on 'YYYY-MM' prefix
+            const filtered = state.transactions.filter(t => t.date.startsWith(yearMonthStr));
+            let income = 0;
+            let expense = 0;
+            let bills = 0;
+
+            filtered.forEach(t => {
+                if (t.type === 'income') {
+                    income += t.amount;
+                } else if (t.type === 'expense') {
+                    expense += t.amount;
+                } else if (t.type === 'bill') {
+                    bills += t.amount;
+                }
+            });
+
+            return {
+                income,
+                expense,
+                bills,
+                combinedExpense: expense + bills,
+                surplus: income - (expense + bills)
+            };
+        }
+
+        // Sync Dashboard Elements
+        function syncDashboardMeters() {
+            const metrics = calculatePeriodMetrics('2026-07');
+            
+            // Format currency output
+            const currencySymbol = state.currency === 'LKR' ? 'LKR ' : state.currency + ' ';
+            
+            // Combined general dashboard surplus calculation: Income - (Expenses + Bills) - Pots Isolated
+            const netSurplus = metrics.surplus;
+            document.getElementById('lcd-main-balance').innerText = `${currencySymbol}${netSurplus.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
+            
+            document.getElementById('dash-total-income').innerText = `${currencySymbol}${metrics.income.toLocaleString('en-US')}`;
+            document.getElementById('dash-total-expense').innerText = `${currencySymbol}${metrics.expense.toLocaleString('en-US')}`;
+            document.getElementById('dash-total-bills').innerText = `${currencySymbol}${metrics.bills.toLocaleString('en-US')}`;
+
+            // Unpaid Bills Indicator
+            const billsCount = state.transactions.filter(t => t.date.startsWith('2026-07') && t.type === 'bill').length;
+            document.getElementById('dash-bills-count').innerText = `${billsCount} registered monthly commitments`;
+
+            // Expense Limit Thermometer
+            const totalOutflow = metrics.combinedExpense;
+            const budgetPercent = Math.min((totalOutflow / state.monthlyBudget) * 100, 100);
+            document.getElementById('dash-budget-info').innerText = `${budgetPercent.toFixed(1)}% limit (${currencySymbol}${totalOutflow.toLocaleString('en-US')})`;
+            document.getElementById('dash-budget-thermometer').style.width = `${budgetPercent}%`;
+
+            // Expense Progress bar simple calculation
+            const expPercent = Math.min((metrics.expense / (metrics.income || 1)) * 100, 100);
+            document.getElementById('dash-expense-bar').style.width = `${expPercent}%`;
+
+            // Reserve pots Sync
+            document.getElementById('pot-emergency-val').innerText = `${currencySymbol}${state.pots.Emergency.toLocaleString('en-US')}`;
+            document.getElementById('pot-wealth-val').innerText = `${currencySymbol}${state.pots.Wealth.toLocaleString('en-US')}`;
+        }
+
+        // Run budget notification triggers
+        function checkBudgetAlerts() {
+            const metrics = calculatePeriodMetrics('2026-07');
+            const totalOutflow = metrics.combinedExpense;
+            const budgetPct = (totalOutflow / state.monthlyBudget) * 100;
+
+            if (budgetPct >= state.notifLimit) {
+                showNotification(`Warning: Monthly expenditure has reached ${budgetPct.toFixed(1)}% of limit threshold! LKR ${totalOutflow.toLocaleString()} of limit LKR ${state.monthlyBudget.toLocaleString()} spent.`);
+            } else if (budgetPct >= 50) {
+                showNotification(`Notice: Monthly expenditure has passed 50% limit threshold.`);
+            }
+        }
+
+        function openReserveModal(potName) {
+            activeReserveTarget = potName;
+            document.getElementById('reserve-modal-title').innerText = `${potName} Isolated Pot`;
+            document.getElementById('reserve-modal-amt').value = '';
+            document.getElementById('reserve-modal').classList.remove('hidden');
+        }
+
+        function closeReserveModal() {
+            document.getElementById('reserve-modal').classList.add('hidden');
+            activeReserveTarget = null;
+        }
+
+        function executePotAdjustment(action) {
+            const amount = parseFloat(document.getElementById('reserve-modal-amt').value);
+            if (!amount || amount <= 0) {
+                alert("Please declare a positive target balance!");
+                return;
+            }
+
+            if (action === 'deposit') {
+                state.pots[activeReserveTarget] += amount;
+                showNotification(`Deposited LKR ${amount.toLocaleString()} into ${activeReserveTarget} isolated storage.`);
+            } else {
+                if (state.pots[activeReserveTarget] < amount) {
+                    alert("Insufficent reserves in targeted pot!");
+                    return;
+                }
+                state.pots[activeReserveTarget] -= amount;
+                showNotification(`Withdrew LKR ${amount.toLocaleString()} from ${activeReserveTarget} isolated storage.`);
+            }
+
+            saveStateToStorage();
+            syncDashboardMeters();
+            closeReserveModal();
+        }
+
+        function handleQuickPotDeposit() {
+            const amt = parseFloat(document.getElementById('quick-pot-amt').value);
+            const pot = document.getElementById('quick-pot-target').value;
+            if (!amt || amt <= 0) return;
+            
+            state.pots[pot] += amt;
+            saveStateToStorage();
+            syncDashboardMeters();
+            document.getElementById('quick-pot-amt').value = '';
+            showNotification(`Deposited LKR ${amt.toLocaleString()} to ${pot} jar!`);
+        }
+
+        function selectFormType(type) {
+            state.currentLedgerFormType = type;
+            document.getElementById('entry-type').value = type;
+
+            const bIncome = document.getElementById('form-type-income');
+            const bExpense = document.getElementById('form-type-expense');
+            const bBill = document.getElementById('form-type-bill');
+
+            // Reset buttons styling
+            [bIncome, bExpense, bBill].forEach(b => {
+                b.className = "px-3 py-2 border rounded-xl font-bold text-xs bg-stone-100 text-stone-500 border-stone-300";
+            });
+
+            // Set Selected Button styles
+            if (type === 'income') {
+                bIncome.className = "px-3 py-2 border rounded-xl font-bold text-xs bg-emerald-50 text-emerald-800 border-emerald-300";
+                populateFormCategories(['Salary', 'Investment', 'Freelance', 'Gifts', 'Other Inflow']);
+            } else if (type === 'expense') {
+                bExpense.className = "px-3 py-2 border rounded-xl font-bold text-xs bg-amber-50 text-amber-800 border-amber-300";
+                populateFormCategories(['Groceries', 'Transport', 'Entertainment', 'Shopping', 'Dining', 'Other Outflow']);
+            } else if (type === 'bill') {
+                bBill.className = "px-3 py-2 border rounded-xl font-bold text-xs bg-rose-50 text-rose-800 border-rose-300";
+                populateFormCategories(['Utilities', 'Rent', 'Insurance', 'Subscribers', 'Taxes', 'Credit Commitments']);
+            }
+        }
+
+        function populateFormCategories(cats) {
+            const selectEl = document.getElementById('entry-category');
+            selectEl.innerHTML = '';
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.innerText = c;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        function handleTransactionSubmit(event) {
+            event.preventDefault();
+
+            const date = document.getElementById('entry-date').value;
+            const title = document.getElementById('entry-title').value.trim();
+            const category = document.getElementById('entry-category').value;
+            const amount = parseFloat(document.getElementById('entry-amount').value);
+            const type = document.getElementById('entry-type').value;
+
+            if (!date || !title || !category || !amount) {
+                alert("Please satisfy all required fields.");
+                return;
+            }
+
+            const newEntry = {
+                id: 'trans-' + Date.now(),
+                type,
+                date,
+                title,
+                category,
+                amount
+            };
+
+            state.transactions.unshift(newEntry);
+            saveStateToStorage();
+            
+            // Refresh views
+            syncDashboardMeters();
+            renderLedgerTable();
+            renderCalendar();
+            updateReportsView();
+            initSurplusChart();
+            initCategoryChart();
+            checkBudgetAlerts();
+
+            // Clear entry inputs safely
+            document.getElementById('entry-title').value = '';
+            document.getElementById('entry-amount').value = '';
+            document.getElementById('entry-date').valueAsDate = new Date();
+
+            showNotification(`Entry Successfully Recorded: ${title} stamped into registry.`);
+        }
+
+        function deleteTransaction(id) {
+            state.transactions = state.transactions.filter(t => t.id !== id);
+            saveStateToStorage();
+            
+            // Refresh views
+            syncDashboardMeters();
+            renderLedgerTable();
+            renderCalendar();
+            updateReportsView();
+            initSurplusChart();
+            initCategoryChart();
+
+            showNotification("Ledger record deleted successfully.");
+        }
+
+        function renderLedgerTable(filterText = '') {
+            const tableBody = document.getElementById('ledger-table-body');
+            tableBody.innerHTML = '';
+
+            const matches = state.transactions.filter(t => {
+                if (!filterText) return true;
+                const normalizedText = filterText.toLowerCase();
+                return t.title.toLowerCase().includes(normalizedText) || t.category.toLowerCase().includes(normalizedText);
+            });
+
+            if (matches.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-stone-400 italic">No corresponding ledger entries discovered.</td></tr>`;
+                return;
+            }
+
+            matches.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-50/50 transition";
+                
+                let valColor = "text-emerald-700";
+                let typeIndicator = "📥";
+                if (t.type === 'expense') {
+                    valColor = "text-amber-800";
+                    typeIndicator = "💸";
+                } else if (t.type === 'bill') {
+                    valColor = "text-rose-800";
+                    typeIndicator = "🧾";
+                }
+
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-stone-500">${t.date}</td>
+                    <td class="p-3 font-bold text-stone-800">${typeIndicator} ${t.title}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 bg-stone-100 text-stone-600 rounded text-[10px] font-bold uppercase tracking-wider">${t.category}</span></td>
+                    <td class="p-3 text-right font-extrabold ${valColor} mono-font">LKR ${t.amount.toLocaleString()}</td>
+                    <td class="p-3 text-center">
+                        <button onclick="deleteTransaction('${t.id}')" class="text-rose-600 hover:text-rose-900 font-bold px-1.5 py-0.5 rounded text-[11px] border border-rose-100 bg-rose-50/50 hover:bg-rose-50 transition">Delete</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function filterLedger() {
+            const text = document.getElementById('search-ledger').value;
+            renderLedgerTable(text);
+        }
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+
+            const year = state.currentCalendarYear;
+            const month = state.currentCalendarMonth;
+
+            document.getElementById('calendar-month-year').innerText = `${monthNames[month]} ${year}`;
+
+            // Calculate first day and total days
+            const firstDay = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+
+            // Populate padding days
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = "bg-stone-100/50 rounded-lg border border-dashed border-stone-200 h-16";
+                grid.appendChild(emptyCell);
+            }
+
+            // Populate actual days
+            for (let day = 1; day <= totalDays; day++) {
+                const dayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                // Get transactions on this day
+                const daysTrans = state.transactions.filter(t => t.date === dayStr);
+                
+                // Assess daily health
+                let netSum = 0;
+                let outFlow = 0;
+                daysTrans.forEach(t => {
+                    if (t.type === 'income') {
+                        netSum += t.amount;
+                    } else {
+                        netSum -= t.amount;
+                        outFlow += t.amount;
+                    }
+                });
+
+                let dayClass = "day-neutral";
+                if (daysTrans.length > 0) {
+                    if (netSum > 0) {
+                        dayClass = "day-good";
+                    } else if (outFlow > 3000) {
+                        dayClass = "day-heavy";
+                    } else {
+                        dayClass = "day-moderate";
+                    }
+                }
+
+                const dayCell = document.createElement('div');
+                dayCell.className = `${dayClass} rounded-xl p-2 border flex flex-col justify-between items-start h-16 cursor-pointer shadow-sm transition hover:scale-[1.03] active:scale-[0.98]`;
+                dayCell.onclick = () => showCalendarDrilldown(dayStr, daysTrans);
+
+                dayCell.innerHTML = `
+                    <span class="text-stone-700 font-extrabold text-[11px]">${day}</span>
+                    ${daysTrans.length > 0 ? `<span class="text-[9px] font-extrabold text-stone-800 max-w-full truncate mono-font">LKR ${Math.abs(netSum).toLocaleString()}</span>` : ''}
+                `;
+                grid.appendChild(dayCell);
+            }
+        }
+
+        function navigateCalendar(direction) {
+            state.currentCalendarMonth += direction;
+            if (state.currentCalendarMonth > 11) {
+                state.currentCalendarMonth = 0;
+                state.currentCalendarYear++;
+            } else if (state.currentCalendarMonth < 0) {
+                state.currentCalendarMonth = 11;
+                state.currentCalendarYear--;
+            }
+            renderCalendar();
+        }
+
+        function showCalendarDrilldown(dateStr, transactions) {
+            const drill = document.getElementById('calendar-drilldown');
+            const tbody = document.getElementById('drilldown-tbody');
+            document.getElementById('drilldown-title').innerText = `Expenditure Detail for ${dateStr}`;
+
+            tbody.innerHTML = '';
+            drill.classList.remove('hidden');
+
+            if (transactions.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-2 text-center text-stone-400 italic">No registered entries for this date. Click Add tab to record one.</td></tr>`;
+                return;
+            }
+
+            transactions.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-stone-100 hover:bg-stone-100/50";
+                
+                let valColor = t.type === 'income' ? 'text-emerald-700' : 'text-amber-800';
+                tr.innerHTML = `
+                    <td class="p-2 font-bold text-stone-800">${t.title}</td>
+                    <td class="p-2 text-stone-500">${t.category}</td>
+                    <td class="p-2 font-bold uppercase text-[10px] text-stone-600">${t.type}</td>
+                    <td class="p-2 text-right font-extrabold ${valColor} mono-font">LKR ${t.amount.toLocaleString()}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function closeDrilldown() {
+            document.getElementById('calendar-drilldown').classList.add('hidden');
+        }
+
+        function initSurplusChart() {
+            const canvas = document.getElementById('dashboardSurplusChart');
+            if (!canvas) return;
+
+            // Generate monthly surplus balances for past 3 periods
+            const months = ['2026-05', '2026-06', '2026-07'];
+            const dataIn = [];
+            const dataOut = [];
+
+            months.forEach(m => {
+                const metrics = calculatePeriodMetrics(m);
+                dataIn.push(metrics.income);
+                dataOut.push(metrics.combinedExpense);
+            });
+
+            if (surplusChartInstance) {
+                surplusChartInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            surplusChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['May 2026', 'June 2026', 'July 2026'],
+                    datasets: [
+                        {
+                            label: 'Total Inflow (LKR)',
+                            data: dataIn,
+                            backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                            borderColor: '#10b981',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Total Outflow (LKR)',
+                            data: dataOut,
+                            backgroundColor: 'rgba(217, 119, 6, 0.7)',
+                            borderColor: '#d97706',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { family: 'Plus Jakarta Sans', weight: 'bold' } } }
+                    },
+                    scales: {
+                        y: { ticks: { font: { family: 'Courier Prime' } } }
+                    }
+                }
+            });
+        }
+
+        function initCategoryChart() {
+            const canvas = document.getElementById('categoryDonutChart');
+            if (!canvas) return;
+
+            // Group July outflows by category
+            const targetPeriod = document.getElementById('report-month-filter').value;
+            const filterTrans = state.transactions.filter(t => t.date.startsWith(targetPeriod) && t.type !== 'income');
+
+            const categories = {};
+            let totalOutflow = 0;
+            filterTrans.forEach(t => {
+                categories[t.category] = (categories[t.category] || 0) + t.amount;
+                totalOutflow += t.amount;
+            });
+
+            const labels = Object.keys(categories);
+            const data = Object.values(categories);
+
+            if (categoryDonutInstance) {
+                categoryDonutInstance.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            categoryDonutInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data,
+                        backgroundColor: [
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Update legend lists
+            const listContainer = document.getElementById('category-legend-list');
+            listContainer.innerHTML = '';
+
+            if (labels.length === 0) {
+                listContainer.innerHTML = '<p class="text-stone-400 italic text-center p-4">No outflows generated for statement period.</p>';
+                return;
+            }
+
+            labels.forEach((lbl, index) => {
+                const amt = data[index];
+                const pct = ((amt / (totalOutflow || 1)) * 100).toFixed(1);
+                
+                const item = document.createElement('div');
+                item.className = "flex flex-col gap-1 py-1";
+                item.innerHTML = `
+                    <div class="flex justify-between font-bold text-stone-700">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-3 h-3 rounded-full inline-block" style="background-color: ${categoryDonutInstance.data.datasets[0].backgroundColor[index]}"></span>
+                            ${lbl}
+                        </span>
+                        <span class="mono-font">LKR ${amt.toLocaleString()} (${pct}%)</span>
+                    </div>
+                    <div class="w-full bg-stone-100 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full" style="background-color: ${categoryDonutInstance.data.datasets[0].backgroundColor[index]}; width: ${pct}%"></div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function updateReportsView() {
+            const period = document.getElementById('report-month-filter').value;
+            const metrics = calculatePeriodMetrics(period);
+            const currencySymbol = 'LKR ';
+
+            document.getElementById('report-sum-income').innerText = `${currencySymbol}${metrics.income.toLocaleString()}`;
+            document.getElementById('report-sum-expense').innerText = `${currencySymbol}${metrics.combinedExpense.toLocaleString()}`;
+            
+            let netSymbol = metrics.surplus >= 0 ? '+' : '';
+            document.getElementById('report-sum-net').innerText = `${netSymbol}${currencySymbol}${metrics.surplus.toLocaleString()}`;
+            if (metrics.surplus < 0) {
+                document.getElementById('report-sum-net').className = "mono-font text-rose-700";
+            } else {
+                document.getElementById('report-sum-net').className = "mono-font text-emerald-800";
+            }
+
+            initCategoryChart();
+        }
+
+        function generatePDFReport() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const period = document.getElementById('report-month-filter').value;
+            const metrics = calculatePeriodMetrics(period);
+
+            // Structure a pristine tactile classic typewriter statement layout
+            doc.setFont("courier", "bold");
+            doc.setFontSize(22);
+            doc.text("RUPEECRAFT COMPTROLER TREASURY DOSSIER", 14, 25);
+            doc.setFont("courier", "normal");
+            doc.setFontSize(10);
+            doc.text("----------------------------------------------------------------------", 14, 30);
+            doc.text(`STATEMENT PERIOD: ${period} ARCHIVAL RECORD`, 14, 35);
+            doc.text(`TIMESTAMPED COMPILED DATE: ${new Date().toLocaleString()}`, 14, 40);
+            doc.text("----------------------------------------------------------------------", 14, 45);
+
+            doc.setFont("courier", "bold");
+            doc.setFontSize(12);
+            doc.text("LEDGER REVENUE FLOW METRICS", 14, 55);
+            doc.setFont("courier", "normal");
+            doc.text(`Aggregate Month Inflows  : LKR ${metrics.income.toLocaleString()}`, 14, 63);
+            doc.text(`Aggregate Month Outflows : LKR ${metrics.combinedExpense.toLocaleString()}`, 14, 70);
+            doc.text(`Statement Net Balance    : LKR ${metrics.surplus.toLocaleString()}`, 14, 77);
+            doc.text("----------------------------------------------------------------------", 14, 85);
+
+            // Filter out transactions of period
+            const periodTrans = state.transactions.filter(t => t.date.startsWith(period));
+            doc.setFont("courier", "bold");
+            doc.text("POSTED LEDGER JOURNAL ENTRIES", 14, 95);
+            doc.setFont("courier", "normal");
+            doc.setFontSize(9);
+            
+            let currentY = 103;
+            doc.text("DATE       DESCRIPTION                   CATEGORY       TYPE      AMOUNT", 14, currentY);
+            currentY += 4;
+            doc.text("---------- ----------------------------- -------------- --------- -------------", 14, currentY);
+            currentY += 6;
+
+            periodTrans.forEach((t, i) => {
+                if (currentY > 275) {
+                    doc.addPage();
+                    currentY = 20;
+                }
+                const formattedDate = t.date;
+                const formattedDesc = t.title.substring(0, 27).padEnd(28, " ");
+                const formattedCat = t.category.substring(0, 13).padEnd(14, " ");
+                const formattedType = t.type.toUpperCase().padEnd(9, " ");
+                const formattedAmt = `LKR ${t.amount.toLocaleString()}`.padStart(13, " ");
+
+                doc.text(`${formattedDate} ${formattedDesc} ${formattedCat} ${formattedType} ${formattedAmt}`, 14, currentY);
+                currentY += 6;
+            });
+
+            doc.setFontSize(8);
+            doc.text("--- End of Ledger Archival Document. Stamped and Authenticated Offline ---", 14, currentY + 10);
+
+            doc.save(`RupeeCraft_Treasury_Statement_${period}.pdf`);
+            showNotification("Dossier compiled successfully. Download started!");
+        }
+
+        async function fetchSriLankanNews() {
+            const spinner = document.getElementById('news-spinner');
+            const output = document.getElementById('news-output');
+            const sourcesContainer = document.getElementById('news-sources-container');
+            const sourcesList = document.getElementById('news-sources-list');
+
+            spinner.classList.remove('hidden');
+            output.innerHTML = `<div class="flex flex-col items-center justify-center py-20 gap-3">
+                <span class="animate-bounce text-3xl">📡</span>
+                <span class="animate-pulse">Accessing Ceylon News Server Grounding Nodes...</span>
+            </div>`;
+            sourcesContainer.classList.add('hidden');
+
+            const query = "Latest 2026 Sri Lanka tax rate, VAT updates, fuel price changes (Sinopec/IOC/Ceypetco), Litro/Laugfs LP Gas rates, and central bank inflation metrics";
+            const systemPrompt = "Act as an expert Sri Lankan financial analyst. Synthesize the latest financial news regarding Sri Lanka fuel prices, LP gas prices, electricity tariffs, and tax developments for the year 2026. Use grounded search results to provide a realistic Ceylon financial report. Keep paragraphs structured cleanly with a high degree of readability.";
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: query }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                // Implementing exponential backoff retries (standard fetch pattern)
+                let response = null;
+                let delay = 1000;
+                for (let i = 0; i < 3; i++) {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) break;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error("Unable to establish proper handshakes with news networks.");
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    const text = candidate.content.parts[0].text;
+                    
+                    // Render synthesized news report
+                    output.innerHTML = formatMarkdown(text);
+
+                    // Extract and render Grounding Search Citations
+                    let sources = [];
+                    const groundingMetadata = candidate.groundingMetadata;
+                    if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                        sources = groundingMetadata.groundingAttributions
+                            .map(attr => ({
+                                uri: attr.web?.uri,
+                                title: attr.web?.title
+                            }))
+                            .filter(src => src.uri && src.title);
+                    }
+
+                    if (sources.length > 0) {
+                        sourcesList.innerHTML = '';
+                        sources.forEach(src => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `<a href="${src.uri}" target="_blank" class="hover:underline font-bold text-amber-800">${src.title}</a>`;
+                            sourcesList.appendChild(li);
+                        });
+                        sourcesContainer.classList.remove('hidden');
+                    }
+
+                    // Dynamically parse out estimates of Fuel, Gas, and VAT for the dashboard widgets if mentioned
+                    updateQuickIntelMeters(text);
+
+                } else {
+                    output.innerHTML = "<p class='text-rose-700 font-bold'>Err: Failed to decode synthesized news response.</p>";
+                }
+
+            } catch (err) {
+                console.error(err);
+                output.innerHTML = `<p class='text-rose-700 font-bold'>Intel stream offline. Error connecting: ${err.message}. Please attempt again later.</p>`;
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Quick regex parser to pluck realistic Ceylon figures for quick card updates
+        function updateQuickIntelMeters(text) {
+            // Fuel
+            const fuelRegex = /(?:92|petrol|fuel).*?(?:LKR|Rs\.?)\s*(\d{3})/i;
+            const fuelMatch = text.match(fuelRegex);
+            document.getElementById('intel-fuel-price').innerText = fuelMatch ? `LKR ${fuelMatch[1]}.00 / L` : "LKR 370.00 / L";
+
+            // Gas
+            const gasRegex = /(?:gas|cylinder|litro|laugfs).*?(?:LKR|Rs\.?)\s*([\d,]{4,5})/i;
+            const gasMatch = text.match(gasRegex);
+            document.getElementById('intel-gas-price').innerText = gasMatch ? `LKR ${gasMatch[1]}` : "LKR 3,690.00 (12.5kg)";
+
+            // VAT
+            const vatRegex = /(?:vat|value added tax|tax).*?(\d{1,2})%/i;
+            const vatMatch = text.match(vatRegex);
+            document.getElementById('intel-vat-rate').innerText = vatMatch ? `${vatMatch[1]}% Standard` : "18% VAT Standard";
+        }
+
+        async function generateAIPredictions() {
+            const spinner = document.getElementById('prediction-spinner');
+            const outputBody = document.getElementById('prediction-output-body');
+
+            spinner.classList.remove('hidden');
+            outputBody.innerHTML = `<div class="flex flex-col items-center justify-center py-20 gap-3">
+                <span class="animate-bounce text-3xl">🔮</span>
+                <span class="animate-pulse">Synthesizing prediction profiles with Gemini Future Sight Engine...</span>
+            </div>`;
+
+            // Calculate current metrics to supply AI with statistical foundations
+            const julyMetrics = calculatePeriodMetrics('2026-07');
+            const juneMetrics = calculatePeriodMetrics('2026-06');
+            const mayMetrics = calculatePeriodMetrics('2026-05');
+
+            // Compute actual mathematical values
+            const netSurplusVal = julyMetrics.surplus;
+            const totalOutflows = julyMetrics.combinedExpense;
+            const avgDailyOutflow = totalOutflows / 31;
+            
+            // Available physical surplus to calculate runway
+            const estimatedCashSurplus = julyMetrics.surplus;
+            const reserveCushion = state.pots.Emergency + state.pots.Wealth;
+            const computedRunway = avgDailyOutflow > 0 ? ((estimatedCashSurplus + reserveCushion) / (totalOutflows || 1)).toFixed(2) : "Infinite";
+
+            // Discretionary calculation
+            const discretionarySpend = state.transactions
+                .filter(t => t.date.startsWith('2026-07') && (t.category === 'Entertainment' || t.category === 'Shopping' || t.category === 'Dining'))
+                .reduce((sum, t) => sum + t.amount, 0);
+            const discretionaryRatio = totalOutflows > 0 ? ((discretionarySpend / totalOutflows) * 100).toFixed(1) : "0";
+
+            // Render local metrics card
+            document.getElementById('predict-runway').innerText = `${computedRunway} Months`;
+            document.getElementById('predict-burn').innerText = `LKR ${Math.round(avgDailyOutflow).toLocaleString()} / Day`;
+            document.getElementById('predict-surplus').innerText = `LKR ${netSurplusVal.toLocaleString()}`;
+            document.getElementById('predict-ratio').innerText = `${discretionaryRatio}%`;
+
+            const prompt = `
+                I want a detailed financial analysis of my household finances based in Sri Lanka (LKR).
+                Here is my ledger configuration:
+                - July 2026 Metrics: Inflows LKR ${julyMetrics.income}, Outflows LKR ${julyMetrics.combinedExpense} (resulting in surplus LKR ${julyMetrics.surplus}).
+                - June 2026 Metrics: Inflows LKR ${juneMetrics.income}, Outflows LKR ${juneMetrics.combinedExpense}.
+                - May 2026 Metrics: Inflows LKR ${mayMetrics.income}, Outflows LKR ${mayMetrics.combinedExpense}.
+                - Isolated reserves: Emergency Pot = LKR ${state.pots.Emergency}, Wealth Reserve = LKR ${state.pots.Wealth}.
+                - Monthly budget limit: LKR ${state.monthlyBudget}.
+                - July discretionary spending: LKR ${discretionarySpend} (${discretionaryRatio}% of entire outflows).
+
+                Act as a professional wealth consultant. Based on this profile:
+                1. Calculate and predict my expected runway if my income ceased immediately.
+                2. Identify major risk factors in my spending habits relative to Sri Lankan conditions (inflation, energy price hikes, fuel tariffs).
+                3. Propose 3 customized, highly actionable tactical optimization maneuvers in LKR to maximize wealth accumulation.
+            `;
+
+            const systemPrompt = "Act as an expert Ceylonese Wealth Management Strategist. Provide professional, encouraging, highly structured predictions and risk analysis. Use clean formatting with subheadings, short paragraphs, and clear bullet points.";
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                let response = null;
+                let delay = 1000;
+                for (let i = 0; i < 3; i++) {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) break;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 2;
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error("Unable to establish handshakes with predictive engine.");
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (text) {
+                    outputBody.innerHTML = formatMarkdown(text);
+                } else {
+                    outputBody.innerHTML = "<p class='text-rose-700 font-bold'>Err: Failed to decode predictive report response.</p>";
+                }
+
+            } catch (err) {
+                console.error(err);
+                outputBody.innerHTML = `<p class='text-rose-700 font-bold'>Predictive engine offline. Error connecting: ${err.message}. Please attempt again later.</p>`;
+            } finally {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function saveSettings() {
+            state.currency = document.getElementById('settings-currency').value;
+            state.monthlyBudget = parseFloat(document.getElementById('settings-budget').value) || 80000;
+            state.notifLimit = parseInt(document.getElementById('settings-notif-limit').value) || 85;
+
+            saveStateToStorage();
+            syncDashboardMeters();
+            showNotification("Ledger settings updated and synchronized successfully!");
+        }
+
+        function showNotification(text) {
+            const bar = document.getElementById('notification-bar');
+            document.getElementById('notification-text').innerText = text;
+            bar.classList.remove('hidden');
+            
+            // Auto dismiss after 8 seconds
+            setTimeout(() => {
+                dismissNotification();
+            }, 8000);
+        }
+
+        function dismissNotification() {
+            document.getElementById('notification-bar').classList.add('hidden');
+        }
+
+        // Minimal robust Markdown parser to structure Gemini outputs into premium typography
+        function formatMarkdown(text) {
+            if (!text) return "";
+            
+            let html = text
+                .replace(/### (.*?)\n/g, '<h4 class="font-extrabold serif-font text-base text-stone-800 mt-4 mb-2">$1</h4>')
+                .replace(/## (.*?)\n/g, '<h3 class="font-bold serif-font text-lg text-amber-900 mt-5 mb-3 border-b pb-1">$1</h3>')
+                .replace(/# (.*?)\n/g, '<h2 class="font-extrabold serif-font text-xl text-stone-900 mt-6 mb-4">$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong class="font-extrabold text-stone-800">$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em class="italic text-stone-700">$1</em>')
+                .replace(/\n\s*-\s*(.*?)\n/g, '\n<li class="list-disc ml-5 pl-1 py-0.5 text-stone-700">$1</li>\n')
+                .replace(/\n\s*\*\s*(.*?)\n/g, '\n<li class="list-disc ml-5 pl-1 py-0.5 text-stone-700">$1</li>\n')
+                .replace(/\n\n/g, '</p><p class="mt-3">');
+
+            // Wrap hanging lists
+            html = html.replace(/(<li.*?>.*?<\/li>)/gs, '<ul class="my-2 space-y-1">$1</ul>');
+            
+            return `<p class="mt-2">${html}</p>`;
+        }
+    </script>
+</body>
+</html>
